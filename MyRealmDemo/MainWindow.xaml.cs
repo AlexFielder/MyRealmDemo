@@ -1,26 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using MyRealmDemo.Model;
+using Realms;
+using System;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace RealmDemo
+namespace MyRealmDemo
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Realm realm;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -39,7 +32,41 @@ namespace RealmDemo
             string file = $"{path}\\default.realm";
 
             RealmConfiguration config = new RealmConfiguration(file);
-            realm = Realm.GetInstnace(config);
+            realm = Realm.GetInstance(config);
+        }
+
+        private void OnSaveUser(object sender, RoutedEventArgs e)
+        {
+            realm.Write(() =>
+            {
+                Person person = new Person
+                {
+                    Name = txtName.Text,
+                    Surname = txtSurname.Text
+                };
+                realm.Add(person);
+            });
+        }
+
+        private void OnGetCount(object sender, RoutedEventArgs e)
+        {
+            var list = realm.All<Person>();
+            MessageBox.Show($"Number of Customers: {list.Count()}");
+        }
+
+        private void OnListCustomers(object sender, RoutedEventArgs e)
+        {
+            var result = realm.All<Person>().ToList();
+            listCustomers.ItemsSource = result;
+        }
+
+        private void OnUpdateCustomer(object sender, RoutedEventArgs e)
+        {
+            Person person = realm.All<Person>().FirstOrDefault(x => x.Surname == "Pagani");
+            realm.Write(() =>
+            {
+                person.Name = "Giulia";
+            });
         }
     }
 }
